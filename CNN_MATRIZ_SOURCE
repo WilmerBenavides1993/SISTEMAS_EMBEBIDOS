@@ -1,0 +1,103 @@
+/*                             UNIVERSIDAD TÉCNICA DEL NORTE
+                                    FICA-CIERCOM
+                                 SISTEMAS EMBEBIDOS
+                                 BENAVIDES WILMER
+                                   25/11/2019
+
+*/
+
+#include "matriz_entrenamiento.h"
+void setup() {
+  Serial.begin(9600);
+}
+void loop() {
+  cnn(3, 5, 130);
+}
+void cnn (int etiquetas, int tam_col, int tam_fil) {
+  int f, c;
+  int i;
+  int j;
+  int l;
+  float centroid = 0;
+  int promedio = 0;
+  float distancia_menor = 3000;
+  float distancia = 0;
+  int s = 0; // contar cuantas datos van en source
+  int label;
+  int cont;
+  int bandera;
+  float matriz_s[s][tam_col];
+  /*
+       centroides -> promedio
+                     promedio por columna y por etiqueta
+                     almaceno vectores
+                     knn entre vectores y matriz de entrenamiento
+  */
+
+  float centroides [etiquetas][tam_col];
+  for (i = 0; i < etiquetas; i++) {
+    for (j = 0; j < tam_col; j++) {
+      if (j == tam_col - 1) {
+        centroides[i][j] = i + 1; // llenar etiquetas a cada centroide
+      } else
+        centroides[i][j] = 0; // encero
+      matriz_s[i][j] = 0;
+    }
+  }
+
+  for (l = 0; l < etiquetas; l++) {
+    for (i = 0; i < tam_col - 1; i++) {
+      for (j = (40 * l); j < 40 * (l + 1); j++) {
+        centroid = centroid + matriz[j][i];
+      }
+      centroides[l][i] = centroid / 40;
+      Serial.print(centroides[l][i], 4);
+      Serial.print("|");
+      centroid = 0;
+    } Serial.println(centroides[l][tam_col - 1], 4);
+
+
+  }
+  // encontrar los centroides y la matriz de  entrenamineto para ver si casifica adecuadamente
+  for (i = 0; i < tam_fil; i++) {
+    for (j = 0; j < etiquetas; j++) {
+      for (l = 0; l < tam_col - 1; l++) {
+        promedio = promedio + pow(centroides[j][l] - matriz[i][l], 2);
+        cont = cont + 1;// controlar el ploteo de matriz
+        if (cont < 5) {// condicion de la matriz
+          if (bandera == 1) {// si la bandera se activa se guarda en la matriz_s
+            matriz_s[i][l] = matriz[i - 1][l - 1];// se guarda en matriz_s el valor de S menos una posicion
+            Serial.print( matriz_s[i][l]);// imprime los valores guardados en matriz_s
+            Serial.print("|");
+            delay(200);
+            bandera == 0;// encerar la bandera para lectura de nuevo valor
+          }
+          //  Serial.print(matriz[i][l]);// imprimir la matriz
+          //  delay(100);// tiempo
+          // Serial.print("|");// separador
+
+        }
+      }
+      Serial.println(' ');
+      distancia = sqrt(promedio);
+      if (distancia < distancia_menor) {
+        distancia_menor = distancia;
+        label = centroides[j][tam_col - 1];
+      }
+      promedio = 0;
+    } cont = 0;
+    distancia_menor = 3000;
+    if (matriz[i][tam_col - 1] == label) {
+      bandera = 0;
+      // Serial.println("D");
+    } else {
+
+      bandera = 1;
+      //Serial.println("S");
+      s++;
+
+    }
+  }
+
+
+}
