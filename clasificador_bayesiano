@@ -1,0 +1,69 @@
+/*            UNIVERSIDAD TÉCNICA DEL NORTE
+*                    FICA-CIERCOM
+*                 SISTEMAS EMBEBIDOS
+*/               BENAVIDES WILMER  2/12/2019
+
+
+#include <ListLib.h>
+#include "matriz_entrenamiento.h"
+float datos_prueba[5] = {5 , 2 , 3.5 , 1, 2};
+void setup() {
+  Serial.begin(9600);
+
+}
+
+void loop() {
+  bayesiano(3, 4, 40, 0.70);
+}
+
+void bayesiano( int etiquetas, int columna , int filas , float radio ) {
+  /*       |1     |2      |3     |
+           |sum 1 |sum 2  |sum 3 |
+           |p(x/1)|p(x/2) |p(x/3)|
+           |p(1/x)|p(2/x) |p(3/x)|
+
+  */
+  int col;
+  int fil;
+  List<int> list;
+  float sumatoria = 0; // sumatoria de la elevación al cuadrado de cada col
+  float distancia = 0; // raiz de sumatoria
+  float distancia_mayor = 0.1;// valor pequeño para comparar 
+  float normalizador = 0;
+  
+  for (fil = 0; fil < filas; fil++) {
+    for (col = 0; col < columna - 1; col++) { // menos 1 por ultima columna es etiqueta
+      sumatoria = sumatoria + pow(matriz[fil][col] - datos_prueba[col], 2);
+    }
+    distancia = sqrt(sumatoria);// calcula la raiz
+    Serial.println(distancia);
+    delay(200);
+    sumatoria = 0;
+    if (distancia > distancia_mayor) {// se compara de todos los valores el mayor
+      distancia_mayor = distancia;
+    }
+    distancia = 0;// se encera para nueva lectura
+  }
+  Serial.print("la distancia es -->");
+  Serial.println(distancia_mayor);
+  delay(200);
+  // En el primero se saca al valor mayor y
+  //se crea un nuevo ciclo para dividir con el valor mayor del anterior ciclo
+  for (fil = 0; fil < filas; fil++) {
+    for (col = 0; col < columna - 1; col++) {
+      sumatoria = sumatoria + pow(matriz[fil][col] - datos_prueba[col], 2);
+    }
+    distancia = sqrt(sumatoria);
+    normalizador = distancia / distancia_mayor;// se divide para el valor mayor 
+    Serial.print("valor normalizado:");
+    Serial.println(normalizador);
+    delay(200);
+    sumatoria = 0;
+    if (normalizador < radio) {// se compara con el radio y cada vez que este dentro del rango se ingresa la posicion en una lista
+      list.Add(fil);// la posicion de la fila que entra en el rago se registra
+      Serial.print("valor normalizado dentro del radio:");
+      Serial.println(fil);
+      delay(200);
+    }
+  }
+}
